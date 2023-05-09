@@ -3,6 +3,17 @@ def SMA (df, period=21):
     
     return df
 
+def EMA(df,window):
+    pesos = np.exp(np.linspace(-1.0,0.0,window))
+    pesos /= pesos.sum()
+
+    a = np.convolve(pesos,df['Close']) [:len(df)]
+    a[:window] = a[window]
+
+    df['EMA'] = a
+
+    return df
+
 def Stochastic_Oscillator(df,period=14, mm_d1=3,mm_d2=3):
     df[f'Low {period}'] = df.Low.rolling(period).min()
     df[f'High {period}'] = df.High.rolling(period).max()
