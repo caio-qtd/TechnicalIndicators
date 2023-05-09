@@ -1,3 +1,6 @@
+import pandas as pd, numpy as np
+
+
 def SMA (df, period=21):
     df[f'{period}_SMA'] = df.Close.rolling(period).mean()
     
