@@ -1,19 +1,15 @@
-import pandas as pd, numpy as np
-
+import pandas as pd, numpy as np, yfinance as yf
 
 def SMA (df, period=21):
     df[f'{period}_SMA'] = df.Close.rolling(period).mean()
-    
     return df
 
-def EMA(df,window):
-    pesos = np.exp(np.linspace(-1.0,0.0,window))
-    pesos /= pesos.sum()
+def EMA(df,period=12):
+    df[f'EMA {period}'] = df.Close.ewm(span=period).mean()
+    return df
 
-    a = np.convolve(pesos,df['Close']) [:len(df)]
-    a[:window] = a[window]
-
-    df['EMA'] = a
+def Momentum(df, period=10):
+    df[f'Momentum {period}'] = df.Close - df.Close.rolling(period).mean()
 
     return df
 
@@ -22,7 +18,7 @@ def Stochastic_Oscillator(df,period=14, mm_d1=3,mm_d2=3):
     df[f'High {period}'] = df.High.rolling(period).max()
     df['%K'] = (df['Close'] - df[f'Low {period}'])*100 / (df[f'High {period}'] - df[f'Low {period}'])
     df['%D(Rapido)'] = df['%K'].rolling(mm_d1).mean()
-    
+
     return df
 
 def Stochastic_Oscillator_v2(df,period=14,tipo='rapido', mm_d1=3,mm_d2=3):
@@ -37,7 +33,6 @@ def Stochastic_Oscillator_v2(df,period=14,tipo='rapido', mm_d1=3,mm_d2=3):
         df['%D(Rapido)'] = df['%K'].rolling(mm_d1).mean()
         df['%D(Lento)'] = df['%D(Rapido)'].rolling(mm_d2).mean()
         df.drop('%K',inplace=True,axis=1)
-        
         return df
 
 
@@ -49,5 +44,19 @@ def RSI(df,ema_decay=13, adjust=False):
     df['EMA_Negativa'] = ema_negativo = negativo.ewm(com=ema_decay,adjust=adjust).mean()
     df['RS'] = RS = ema_positivo/ema_negativo
     df['RSI'] = RSI = (100/(1 + RS))
+
+    return df
+
+def MACD(df, fast_ema=12, slow_ema=26, signal=9):
+
+    if fast_ema > slow_ema:
+        print("O valor da Média Rápida não\npode ser maior que da Média lenta")
+        return KeyError
+        
+    else:
+        df[f'EMA {fast_ema}'] = df.Close.ewm(span = fast_ema).mean()
+        df[f'EMA {slow_ema}'] = df.Close.ewm(span = slow_ema).mean()
+        df['MACD'] = df[f'EMA {fast_ema}'] - df[f'EMA {slow_ema}']
+        df['SINAL'] = df['MACD'].ewm(span=signal).mean()
 
     return df
