@@ -8,6 +8,15 @@ def EMA(df,period=12):
     df[f'EMA {period}'] = df.Close.ewm(span=period).mean()
     return df
 
+def ROC(df, tf=10):
+    df['N'] = df.Close.diff(tf)
+    df['D'] = df.Close.shift(tf)
+    df['ROC'] = ((df.N/df.D)/df.D) *100 # Normalized
+    df.drop(['N','D'], axis=1,inplace=True)
+
+    return df
+    
+
 def Momentum(df, period=10):
     df[f'Momentum {period}'] = df.Close - df.Close.rolling(period).mean()
 
